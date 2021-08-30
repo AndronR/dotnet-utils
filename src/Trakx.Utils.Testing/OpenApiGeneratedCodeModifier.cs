@@ -1,9 +1,11 @@
-﻿using System;
+﻿using FluentAssertions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Trakx.Utils.Extensions;
 using Trakx.Utils.Testing.Attributes;
 using Xunit;
 using Xunit.Abstractions;
@@ -81,6 +83,36 @@ namespace Trakx.Utils.Testing
                 content = content.Replace(@"var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);",
                 @"var response_ = client_.Send(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken);");
                 await File.WriteAllTextAsync(filePath, content);
+            }
+        }
+
+        private DirectoryInfo GetRepositoryRootDirectory()
+        {
+            var directory = new DirectoryInfo(Environment.CurrentDirectory);
+            if (!directory.TryWalkBackToRepositoryRoot(out var repositoryRoot))
+                repositoryRoot.Should().NotBeNull("Tests should be running from its repository root.");
+            _output.WriteLine($"using {repositoryRoot!.FullName} as repository root path.");
+            return repositoryRoot;
+        }
+
+        [Fact, RunOrder(5)]
+        public async Task Update_Readme()
+        {
+            var readmeDirectoryInfo = GetRepositoryRootDirectory();
+            var readmeFilePath = Path.Combine(readmeDirectoryInfo!.FullName, "README.md");
+            using (var readmeEditor = new ReadmeEditor(readmeFilePath))
+            {
+                var content = await readmeEditor.ExtractReadmeContent();
+                if (!content.Contains("How to regenerate C# API clients"))
+                    content += @"
+## How to regenerate C# API clients
+
+* If you work with external API, you probably need to update OpenAPI definition added to the project. It's usually openApi3.yaml file.
+* Do right click on the project and select Edit Project File. In the file change value of `GenerateApiClient` property to true.
+* Rebuild the project. `NSwag` target will be executed as post action.
+* The last thing to be done is to run integration test `OpenApiGeneratedCodeModifier` that will rewrite auto generated C# classes to use C# 9 features like records and init keyword.
+";
+                await readmeEditor.UpdateReadmeContent(content);
             }
         }
     }
