@@ -71,7 +71,7 @@ jobs:
           if [ ${{github.ref}} == *master ] ; then
             package_version=${{steps.bumpSemver.outputs.new_tag}}
           else
-            branch=`sed -E 's/refs\/head\/.+/\1/' <<< ${{github.ref}}`
+            branch=`sed -E 's/(refs\/head\/)(.+)/\2/' <<< ${{github.ref}}`
             branch=`sed -E 's/\//-/' <<< $branch`
             build=${{github.run_number}}
             packageVersion=`sed -E 's/^([0-9]+)\.([0-9]+)\.([0-9]+)\-(\w{7})$/\1.\2.\3-$branch.$build.\4/' <<< ${{steps.bumpSemver.outputs.new_tag}}`
