@@ -105,7 +105,7 @@ jobs:
           dotnet pack ${{env.UTILS_PROJECT_PATH}} --no-build --configuration ${{ steps.comp-mode.outputs.compilationMode }} \
             --output ./nuget/ -p:PackageVersion=${{ steps.enrich-semver.outputs.packageVersion }} --include-symbols --include-source
           dotnet pack ${{env.TESTING_PROJECT_PATH}} --no-build --configuration ${{ steps.comp-mode.outputs.compilationMode }} \
-            --output ./nuget/ -p:PackageVersion=${{ v }} --include-symbols --include-source
+            --output ./nuget/ -p:PackageVersion=${{ steps.enrich-semver.outputs.packageVersion }} --include-symbols --include-source
 
       - name: Publish
         # https://github.com/NuGet/Home/issues/8580
