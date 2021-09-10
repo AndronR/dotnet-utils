@@ -46,7 +46,7 @@ jobs:
             COMP_MODE=Debug
           fi
           echo '::set-output name=compilationMode::'$COMP_MODE
-          echo "compilation mode set to ${{steps.comp-mode.outputs.compilationMode}}"
+          echo "compilation mode set to $COMP_MODE"
 
       - name: checkout
         uses: actions/checkout@v2
@@ -62,10 +62,23 @@ jobs:
           RELEASE_BRANCHES : master
           INITIAL_VERSION: 0.1.0
 
-      - name: Print bumpSemver outputs
+      - name: Enrich semver
+        if: ${{ github.ref != 'master' }}
+        id: enrich-semver
         run: |
           echo "latest tag is ${{steps.bumpSemver.outputs.tag}}"
           echo "bumping ${{steps.bumpSemver.outputs.part}} level on ${{github.ref}} gives new tag ${{steps.bumpSemver.outputs.new_tag}}"
+          if [ ${{github.ref}} == *master ] ; then
+            package_version=${{steps.bumpSemver.outputs.new_tag}}
+          else
+            branch=`sed -E 's/(refs\/heads\/)(.+)/\2/' <<< ${{github.ref}}`
+            branch=`sed -E 's/\//-/' <<< $branch`
+            build=${{github.run_number}}
+            packageVersion=`sed -E "s/^([0-9]+)\.([0-9]+)\.([0-9]+)\-(\w{7})$/\1.\2.\3-$branch.$build.\4/" <<< ${{steps.bumpSemver.outputs.new_tag}}`
+          fi
+          echo $packageVersion
+          echo '::set-output name=packageVersion::'$packageVersion
+          echo "package version set to $packageVersion"
 
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1.7.2
@@ -90,9 +103,9 @@ jobs:
       - name: Package
         run: |
           dotnet pack ${{env.UTILS_PROJECT_PATH}} --no-build --configuration ${{ steps.comp-mode.outputs.compilationMode }} \
-            --output ./nuget/ -p:PackageVersion=${{ steps.bumpSemver.outputs.new_tag }} --include-symbols --include-source
+            --output ./nuget/ -p:PackageVersion=${{ steps.enrich-semver.outputs.packageVersion }} --include-symbols --include-source
           dotnet pack ${{env.TESTING_PROJECT_PATH}} --no-build --configuration ${{ steps.comp-mode.outputs.compilationMode }} \
-            --output ./nuget/ -p:PackageVersion=${{ steps.bumpSemver.outputs.new_tag }} --include-symbols --include-source
+            --output ./nuget/ -p:PackageVersion=${{ steps.enrich-semver.outputs.packageVersion }} --include-symbols --include-source
 
       - name: Publish
         # https://github.com/NuGet/Home/issues/8580
