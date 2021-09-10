@@ -62,10 +62,22 @@ jobs:
           RELEASE_BRANCHES : master
           INITIAL_VERSION: 0.1.0
 
-      - name: Print bumpSemver outputs
+      - name: Enrich semver
+        if: ${{ github.ref != 'master' }}
+        id: enrich-semver
         run: |
           echo "latest tag is ${{steps.bumpSemver.outputs.tag}}"
           echo "bumping ${{steps.bumpSemver.outputs.part}} level on ${{github.ref}} gives new tag ${{steps.bumpSemver.outputs.new_tag}}"
+          if ${{github.ref}} == 'refs/heads/master' ; then
+            package_version=${{steps.bumpSemver.outputs.new_tag}}
+          else
+            branch=`sed -E 's/\//-\4/' <<< ${{github.ref}}`
+            build=${{github.run_number}}
+            packageVersion=`sed -E 's/^([0-9]+)\.([0-9]+)\.([0-9]+)\-(\w{7})$/\1.\2.\3-$branch.$build.\4/' <<< $semver`
+          fi
+          echo $packageVersion
+          echo '::set-output name=packageVersion::'$packageVersion
+          echo 'package version set to ${{steps. enrich-semver.outputs.packageVersion}}'
 
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1.7.2
