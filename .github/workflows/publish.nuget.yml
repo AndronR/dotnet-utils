@@ -68,7 +68,7 @@ jobs:
         run: |
           echo "latest tag is ${{steps.bumpSemver.outputs.tag}}"
           echo "bumping ${{steps.bumpSemver.outputs.part}} level on ${{github.ref}} gives new tag ${{steps.bumpSemver.outputs.new_tag}}"
-          if ${{github.ref}} == 'refs/heads/master' ; then
+          if [${{github.ref}} == 'refs/heads/master'] ; then
             package_version=${{steps.bumpSemver.outputs.new_tag}}
           else
             branch=`sed -E 's/\//-/' <<< ${{github.ref}}`
