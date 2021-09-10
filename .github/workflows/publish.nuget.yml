@@ -46,7 +46,7 @@ jobs:
             COMP_MODE=Debug
           fi
           echo '::set-output name=compilationMode::'$COMP_MODE
-          echo "compilation mode set to ${{steps.comp-mode.outputs.compilationMode}}"
+          echo "compilation mode set to $COMP_MODE"
 
       - name: checkout
         uses: actions/checkout@v2
@@ -78,7 +78,7 @@ jobs:
           fi
           echo $packageVersion
           echo '::set-output name=packageVersion::'$packageVersion
-          echo 'package version set to ${{steps. enrich-semver.outputs.packageVersion}}'
+          echo "package version set to $packageVersion"
 
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1.7.2
@@ -103,9 +103,9 @@ jobs:
       - name: Package
         run: |
           dotnet pack ${{env.UTILS_PROJECT_PATH}} --no-build --configuration ${{ steps.comp-mode.outputs.compilationMode }} \
-            --output ./nuget/ -p:PackageVersion=${{ steps.bumpSemver.outputs.new_tag }} --include-symbols --include-source
+            --output ./nuget/ -p:PackageVersion=${{ steps.enrich-semver.outputs.packageVersion }} --include-symbols --include-source
           dotnet pack ${{env.TESTING_PROJECT_PATH}} --no-build --configuration ${{ steps.comp-mode.outputs.compilationMode }} \
-            --output ./nuget/ -p:PackageVersion=${{ steps.bumpSemver.outputs.new_tag }} --include-symbols --include-source
+            --output ./nuget/ -p:PackageVersion=${{ v }} --include-symbols --include-source
 
       - name: Publish
         # https://github.com/NuGet/Home/issues/8580
