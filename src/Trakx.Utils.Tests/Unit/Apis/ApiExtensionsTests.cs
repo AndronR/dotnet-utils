@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Trakx.Utils.Apis;
 using Xunit;
 
 namespace Trakx.Utils.Tests.Unit.Apis
@@ -7,12 +8,12 @@ namespace Trakx.Utils.Tests.Unit.Apis
     public class ApiExtensionsTests
     {
         [Fact]
-        public void Api_version_should_be_parsed_from_string()
+        public void ServiceCollection_add_versioning()
         {
-            var version = "0.1";
-            var apiVersion = ApiVersion.Parse(version);
-            apiVersion.MajorVersion.Should().Be(0);
-            apiVersion.MinorVersion.Should().Be(1);
+            var services = new ServiceCollection();
+            services.AddVersioning("0.1");
+            var serviceProvider = services.BuildServiceProvider();
+            serviceProvider.Should().NotBeNull();
         }
     }
 }
