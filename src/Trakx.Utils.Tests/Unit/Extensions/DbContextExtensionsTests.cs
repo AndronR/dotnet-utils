@@ -28,7 +28,7 @@ namespace Trakx.Utils.Tests.Unit.Extensions
         {
             var fakeLogger = Substitute.For<ILogger>();
             _inMemoryDbContext.LogMigrations(fakeLogger);
-            fakeLogger.Received().Information(Arg.Any<string>(), Arg.Any<List<string>>());
+            fakeLogger.ReceivedWithAnyArgs().Information(Arg.Any<string>(), Arg.Any<List<string>>());
         }
 
         public void Dispose()
