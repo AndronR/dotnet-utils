@@ -15,7 +15,7 @@ namespace Trakx.Utils.Tests.Unit.Extensions
 
         public EnumerableExtensionsTests()
         {
-            _distribution = new[] {1.3, 1.2, 1.0, 0.9, 0.8, 0.8, 1.2};
+            _distribution = new[] { 1.3, 1.2, 1.0, 0.9, 0.8, 0.8, 1.2 };
         }
 
         private class ObjectToCompare
@@ -36,7 +36,7 @@ namespace Trakx.Utils.Tests.Unit.Extensions
             };
 
             classes.DistinctBy(c => c!.Name).Should().BeEquivalentTo(classes.Take(3));
-            classes.DistinctBy(c => c!.Reference).Should().BeEquivalentTo(classes[0]!, classes[3]!);
+            classes.DistinctBy(c => c!.Reference).Should().BeEquivalentTo(new[] { classes[0]!, classes[3]! });
         }
 
         [Fact]
@@ -137,7 +137,7 @@ namespace Trakx.Utils.Tests.Unit.Extensions
         public void SelectPreferenceWithMaxDeviationThreshold_should_not_throw_on_sets_with_one_value()
         {
             var selectionAction = new Func<EnumerableExtensions.SelectionWithStatistics<double?>>(
-                () => new double?[] {0.245, double.NaN, null}.SelectPreferenceWithMaxDeviationThreshold(
+                () => new double?[] { 0.245, double.NaN, null }.SelectPreferenceWithMaxDeviationThreshold(
                     x => x ?? 0, 10));
 
             selectionAction.Should().NotThrow<Exception>();
@@ -148,7 +148,7 @@ namespace Trakx.Utils.Tests.Unit.Extensions
         public void SelectPreferenceWithMaxDeviationThreshold_should_not_throw_on_sets_with_two_values()
         {
             var selectionAction = new Func<EnumerableExtensions.SelectionWithStatistics<double?>>(
-                () => new double?[] {0.245, 0.256, null}.SelectPreferenceWithMaxDeviationThreshold(
+                () => new double?[] { 0.245, 0.256, null }.SelectPreferenceWithMaxDeviationThreshold(
                     x => x ?? 0, 10));
 
             selectionAction.Should().NotThrow<Exception>();
@@ -158,7 +158,7 @@ namespace Trakx.Utils.Tests.Unit.Extensions
         [Fact]
         public void ToCsvDistinctList_should_join_trimmed_lower_cased_ToString_results_with_spacing()
         {
-            var strings = new[] {"ab ", "def", " klm", "KlM"};
+            var strings = new[] { "ab ", "def", " klm", "KlM" };
             strings.ToCsvList(true, true, true, quoted: false).Should().Be("ab, def, klm");
             strings.ToCsvList(true, false, true, quoted: true, trim: false)
                 .Should().Be("\"ab \", \"def\", \" klm\", \"KlM\"");
