@@ -8,10 +8,8 @@ namespace Trakx.Utils.Extensions
 {
     public static class DateTimeOffsetExtensions
     {
-        public static string ToIso8601(this DateTimeOffset offset)
-        {
-            return offset.DateTime.ToUniversalTime().ToString("o", CultureInfo.InvariantCulture);
-        }
+        public static string ToIso8601(this DateTimeOffset dateTime, bool asUtc = true)
+            => (asUtc ? dateTime.ToUniversalTime() : dateTime).ToString("o", CultureInfo.InvariantCulture);
 
         public static DateTimeOffset Round(this DateTimeOffset offset, TimeSpan timeSpan)
         {
@@ -26,7 +24,7 @@ namespace Trakx.Utils.Extensions
             Round(offset, period.ToTimeSpan());
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="startDate">Date we start looking forward from.</param>
         /// <param name="endDate">Latest date at which we want to arrive.</param>
