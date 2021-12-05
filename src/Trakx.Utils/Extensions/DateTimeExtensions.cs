@@ -17,10 +17,8 @@ namespace Trakx.Utils.Extensions
 
         public static TimeZoneInfo LondonTimeZone => LazyLondonTimeZone.Value;
 
-        public static string ToIso8601(this DateTime utcDateTime)
-        {
-            return new DateTimeOffset(utcDateTime).ToIso8601();
-        }
+        public static string ToIso8601(this DateTime dateTime, bool asUtc)
+            => (asUtc ? dateTime.ToUniversalTime() : dateTime).ToString("o", CultureInfo.InvariantCulture);
 
         public static ulong ToUnixDateTime(this DateTime utcDateTime)
         {
@@ -44,5 +42,5 @@ namespace Trakx.Utils.Extensions
             return londonCloseUtc;
         }
     }
-    
+
 }
