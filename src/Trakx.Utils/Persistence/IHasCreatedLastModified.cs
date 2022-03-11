@@ -1,10 +1,9 @@
 ﻿using System;
 
-namespace Trakx.Utils.Persistence
+namespace Trakx.Utils.Persistence;
+
+public interface IHasCreatedLastModified
 {
-    public interface IHasCreatedLastModified
-    {
-        DateTimeOffset Created { get; set; }
-        DateTimeOffset LastModified { get; set; }
-    }
+    DateTimeOffset Created { get; set; }
+    DateTimeOffset LastModified { get; set; }
 }

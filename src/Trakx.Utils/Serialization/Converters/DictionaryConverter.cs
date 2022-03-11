@@ -7,75 +7,74 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Trakx.Utils.Extensions;
 
-namespace Trakx.Utils.Serialization.Converters
+namespace Trakx.Utils.Serialization.Converters;
+
+/// <summary>
+/// Credits to https://github.com/dotnet/runtime/issues/30524#issuecomment-524619972
+/// </summary>
+public class JsonNonStringKeyDictionaryConverter<TKey, TValue> : JsonConverter<IDictionary<TKey, TValue>> where TKey : notnull
 {
-    /// <summary>
-    /// Credits to https://github.com/dotnet/runtime/issues/30524#issuecomment-524619972
-    /// </summary>
-    public class JsonNonStringKeyDictionaryConverter<TKey, TValue> : JsonConverter<IDictionary<TKey, TValue>> where TKey : notnull
+    public override IDictionary<TKey, TValue>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        public override IDictionary<TKey, TValue>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            var convertedType = typeof(Dictionary<,>)
-                .MakeGenericType(typeof(string), typeToConvert.GenericTypeArguments[1]);
-            var value = JsonSerializer.Deserialize(ref reader, convertedType, options);
-            var instance = (Dictionary<TKey, TValue>)Activator.CreateInstance(
-                typeof(Dictionary<TKey, TValue>),
-                BindingFlags.Instance | BindingFlags.Public,
+        var convertedType = typeof(Dictionary<,>)
+            .MakeGenericType(typeof(string), typeToConvert.GenericTypeArguments[1]);
+        var value = JsonSerializer.Deserialize(ref reader, convertedType, options);
+        var instance = (Dictionary<TKey, TValue>)Activator.CreateInstance(
+            typeof(Dictionary<TKey, TValue>),
+            BindingFlags.Instance | BindingFlags.Public,
+            null,
+            null,
+            CultureInfo.CurrentCulture)!;
+        var enumerator = (IEnumerator)convertedType.GetMethod("GetEnumerator")?.Invoke(value, null)!;
+        var parse = typeof(TKey)
+            .GetMethod("Parse", 0, BindingFlags.Public | BindingFlags.Static,
                 null,
-                null,
-                CultureInfo.CurrentCulture)!;
-            var enumerator = (IEnumerator)convertedType.GetMethod("GetEnumerator")?.Invoke(value, null)!;
-            var parse = typeof(TKey)
-                .GetMethod("Parse", 0, BindingFlags.Public | BindingFlags.Static,
-                    null,
-                    CallingConventions.Any,
-                    new[] { typeof(string) }, null);
+                CallingConventions.Any,
+                new[] { typeof(string) }, null);
 
-            if (parse == null) throw new NotSupportedException($"{typeof(TKey)} as TKey in IDictionary<TKey, TValue> is not supported.");
+        if (parse == null) throw new NotSupportedException($"{typeof(TKey)} as TKey in IDictionary<TKey, TValue> is not supported.");
 
-            while (enumerator.MoveNext())
-            {
-                var (key, value1) = (KeyValuePair<string, TValue>)enumerator.Current;
-                var parsedKey = parse.Invoke(null, new object[] { key });
-
-                if (parsedKey != null)
-                    instance?.Add((TKey)parsedKey, value1);
-            }
-            return instance;
-        }
-
-        public override void Write(Utf8JsonWriter writer, IDictionary<TKey, TValue> value, JsonSerializerOptions options)
+        while (enumerator.MoveNext())
         {
-            var convertedDictionary = new Dictionary<string, TValue>(value.Count);
-            foreach (var (k, v) in value) convertedDictionary[k.ToString()!] = v;
+            var (key, value1) = (KeyValuePair<string, TValue>)enumerator.Current;
+            var parsedKey = parse.Invoke(null, new object[] { key });
 
-            JsonSerializer.Serialize(writer, convertedDictionary, options);
-            convertedDictionary.Clear();
+            if (parsedKey != null)
+                instance?.Add((TKey)parsedKey, value1);
         }
+        return instance;
     }
 
-    public sealed class JsonDateTimeKeyDictionaryConverter<TValue> : JsonNonStringKeyDictionaryConverter<DateTime, TValue>
+    public override void Write(Utf8JsonWriter writer, IDictionary<TKey, TValue> value, JsonSerializerOptions options)
     {
-        public override void Write(Utf8JsonWriter writer, IDictionary<DateTime, TValue> value, JsonSerializerOptions options)
-        {
-            var convertedDictionary = new Dictionary<string, TValue>(value.Count);
-            foreach (var (k, v) in value) convertedDictionary[k.ToString("yyyy-MM-ddTHH:mm:ssK")] = v;
+        var convertedDictionary = new Dictionary<string, TValue>(value.Count);
+        foreach (var (k, v) in value) convertedDictionary[k.ToString()!] = v;
 
-            JsonSerializer.Serialize(writer, convertedDictionary, options);
-            convertedDictionary.Clear();
-        }
+        JsonSerializer.Serialize(writer, convertedDictionary, options);
+        convertedDictionary.Clear();
     }
+}
 
-    public sealed class JsonDateTimeOffsetKeyDictionaryConverter<TValue> : JsonNonStringKeyDictionaryConverter<DateTimeOffset, TValue>
+public sealed class JsonDateTimeKeyDictionaryConverter<TValue> : JsonNonStringKeyDictionaryConverter<DateTime, TValue>
+{
+    public override void Write(Utf8JsonWriter writer, IDictionary<DateTime, TValue> value, JsonSerializerOptions options)
     {
-        public override void Write(Utf8JsonWriter writer, IDictionary<DateTimeOffset, TValue> value, JsonSerializerOptions options)
-        {
-            var convertedDictionary = new Dictionary<string, TValue>(value.Count);
-            foreach (var (k, v) in value) convertedDictionary[k.ToIso8601()] = v;
+        var convertedDictionary = new Dictionary<string, TValue>(value.Count);
+        foreach (var (k, v) in value) convertedDictionary[k.ToString("yyyy-MM-ddTHH:mm:ssK")] = v;
 
-            JsonSerializer.Serialize(writer, convertedDictionary, options);
-            convertedDictionary.Clear();
-        }
+        JsonSerializer.Serialize(writer, convertedDictionary, options);
+        convertedDictionary.Clear();
+    }
+}
+
+public sealed class JsonDateTimeOffsetKeyDictionaryConverter<TValue> : JsonNonStringKeyDictionaryConverter<DateTimeOffset, TValue>
+{
+    public override void Write(Utf8JsonWriter writer, IDictionary<DateTimeOffset, TValue> value, JsonSerializerOptions options)
+    {
+        var convertedDictionary = new Dictionary<string, TValue>(value.Count);
+        foreach (var (k, v) in value) convertedDictionary[k.ToIso8601()] = v;
+
+        JsonSerializer.Serialize(writer, convertedDictionary, options);
+        convertedDictionary.Clear();
     }
 }

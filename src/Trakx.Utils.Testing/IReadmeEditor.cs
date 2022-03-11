@@ -4,11 +4,10 @@ using System.Threading.Tasks;
 
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
-namespace Trakx.Utils.Testing
+namespace Trakx.Utils.Testing;
+
+internal interface IReadmeEditor : IDisposable
 {
-    internal interface IReadmeEditor : IDisposable
-    {
-        Task<string> ExtractReadmeContent();
-        Task UpdateReadmeContent(string newContent);
-    }
+    Task<string> ExtractReadmeContent();
+    Task UpdateReadmeContent(string newContent);
 }

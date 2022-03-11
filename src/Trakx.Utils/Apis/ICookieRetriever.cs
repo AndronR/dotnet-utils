@@ -1,8 +1,7 @@
-﻿namespace Trakx.Utils.Apis
+﻿namespace Trakx.Utils.Apis;
+
+public interface ICookieRetriever
 {
-    public interface ICookieRetriever
-    {
-        string GetCookie();
-        string GetUserAgent();
-    }
+    string GetCookie();
+    string GetUserAgent();
 }
