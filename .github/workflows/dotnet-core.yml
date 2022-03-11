@@ -5,11 +5,11 @@ on:
     branches: [ dev, master ]
   pull_request:
     branches: [ dev, master ]
-    
+
 env:
   SOLUTION_PATH: "src/Trakx.Utils.sln"
-  
-jobs: 
+
+jobs:
   build:
     timeout-minutes: 3
     runs-on: ubuntu-latest
@@ -18,7 +18,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 6.0.x
     - name: Install dependencies
       run: dotnet restore ${{env.SOLUTION_PATH}}
     - name: Build
@@ -36,11 +36,10 @@ jobs:
             /p:Include=\"[Trakx.*]*\"; \
         done
     - name: Publish Coverage
-      env: 
+      env:
         CODACY_PROJECT_TOKEN: ${{secrets.CODACY_TOKEN}}
       run: |
         for f in ./src/*.Tests/coverage.opencover.xml; do echo "sending coverage report $f" && \
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l csharp -r $f --partial --commit-uuid ${{github.sha}}; \
         done
         bash <(curl -Ls https://coverage.codacy.com/get.sh) final --commit-uuid ${{github.sha}}
-
