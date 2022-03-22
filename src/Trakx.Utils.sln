@@ -31,6 +31,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Trakx.Utils.Testing", "Trak
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Trakx.Utils.Testing.Tests", "Trakx.Utils.Testing.Tests\Trakx.Utils.Testing.Tests.csproj", "{2294B133-7D7F-49CD-B3B5-0DCE019FE458}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trakx.Utils.Startup", "Trakx.Utils.Startup\Trakx.Utils.Startup.csproj", "{7492EA31-C28B-40A9-ADDF-720684BC8A00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trakx.Utils.Startup.Tests", "Trakx.Utils.Startup.Tests\Trakx.Utils.Startup.Tests.csproj", "{420BBC02-727F-4314-886D-5045E544AB71}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +57,14 @@ Global
 		{2294B133-7D7F-49CD-B3B5-0DCE019FE458}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2294B133-7D7F-49CD-B3B5-0DCE019FE458}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2294B133-7D7F-49CD-B3B5-0DCE019FE458}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7492EA31-C28B-40A9-ADDF-720684BC8A00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7492EA31-C28B-40A9-ADDF-720684BC8A00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7492EA31-C28B-40A9-ADDF-720684BC8A00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7492EA31-C28B-40A9-ADDF-720684BC8A00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{420BBC02-727F-4314-886D-5045E544AB71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{420BBC02-727F-4314-886D-5045E544AB71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{420BBC02-727F-4314-886D-5045E544AB71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{420BBC02-727F-4314-886D-5045E544AB71}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

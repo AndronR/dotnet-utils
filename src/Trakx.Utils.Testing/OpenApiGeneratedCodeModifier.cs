@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Trakx.Utils.Extensions;
 using Trakx.Utils.Testing.Attributes;
+using Trakx.Utils.Testing.ReadmeUpdater;
 using Xunit;
 using Xunit.Abstractions;
 
