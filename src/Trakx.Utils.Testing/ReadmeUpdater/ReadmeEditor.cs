@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Polly;
 using Polly.Retry;
 
-namespace Trakx.Utils.Testing;
+namespace Trakx.Utils.Testing.ReadmeUpdater;
 
 internal sealed class ReadmeEditor : IReadmeEditor
 {

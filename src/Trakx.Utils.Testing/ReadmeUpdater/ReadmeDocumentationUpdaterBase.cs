@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Trakx.Utils.Attributes;
@@ -14,27 +13,26 @@ using Trakx.Utils.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Trakx.Utils.Testing;
+namespace Trakx.Utils.Testing.ReadmeUpdater;
 
 /// <summary>
 /// This class should be inherited in the est suites of projects which need
 /// secrets to be provided by environment variables. It will run trigger the run
-/// of <see cref="TryUpdateEnvFileDocumentation_should_create_env_template_file"/>
+/// of <see cref="TryUpdateReadmeDocumentation_should_update_env_section"/>
 /// that updates .env file template.
 /// </summary>
-public abstract class EnvFileDocumentationUpdaterBase
+public abstract class ReadmeDocumentationUpdaterBase : IDisposable
 {
     private readonly ITestOutputHelper _output;
     private readonly IReadmeEditor _editor;
     internal IReadmeEditor Editor => _editor;
-    private static readonly Regex DotEnvSection = new(@"```secretsEnvVariables\r?\n(?<envVars>(?<envVar>([\w]+)=(\*)+\r?\n)+)```\r?\n");
     private readonly PathAssemblyResolver _resolver;
     protected readonly Assembly ImplementingAssembly;
 
-    protected EnvFileDocumentationUpdaterBase(ITestOutputHelper output) : this(output, default) { }
+    protected ReadmeDocumentationUpdaterBase(ITestOutputHelper output) : this(output, default) { }
 
 #pragma warning disable S3442 // "abstract" classes should not have "public" constructors
-    internal EnvFileDocumentationUpdaterBase(ITestOutputHelper output, IReadmeEditor? editor)
+    internal ReadmeDocumentationUpdaterBase(ITestOutputHelper output, IReadmeEditor? editor)
 #pragma warning restore S3442 // "abstract" classes should not have "public" constructors
     {
         _output = output;
@@ -47,34 +45,48 @@ public abstract class EnvFileDocumentationUpdaterBase
     }
 
     [Fact]
-    public async Task TryUpdateEnvFileDocumentation_should_create_env_template_file()
+    public async Task TryUpdateReadmeDocumentation_should_update_env_section()
     {
-        var envFileDocCreated = await UpdateEnvFileDocumentation().ConfigureAwait(false);
+        var envFileDocCreated = await UpdateDocumentation(new EnvVarDocumentationUpdater()).ConfigureAwait(false);
         envFileDocCreated.Should().BeTrue();
     }
 
-    public async Task<bool> UpdateEnvFileDocumentation()
+    [Fact]
+    public async Task TryUpdateReadmeDocumentation_should_update_aws_section()
+    {
+        var assemblyName = ImplementingAssembly.GetName().Name!;
+
+        var variablesPrefix = "/" + (assemblyName.EndsWith(".Tests")
+                ? assemblyName.Remove(assemblyName.Length - ".Tests".Length, ".Tests".Length)
+                : assemblyName).Replace(".", "/") + "/";
+        var updater = new AwsDocumentationUpdater(variablesPrefix);
+        var awsDocCreated = await UpdateDocumentation(updater).ConfigureAwait(false);
+        awsDocCreated.Should().BeTrue();
+    }
+
+    public async Task<bool> UpdateDocumentation<T>(IDocumentationUpdater<T> updater)
+        where T : ConfigurationParameterAttribute
     {
         try
         {
-            var expectedEnvVarSecrets = GetExpectedEnvVarSecretsFromLoadedAssemblies();
+            var expectedEnvVarSecrets = GetExpectedEnvVarSecretsFromLoadedAssemblies<T>(updater.ParametersPrefix, updater.ParametersSuffix);
             if (!expectedEnvVarSecrets.Any()) return true;
 
             var readmeContent = await _editor.ExtractReadmeContent();
-            var secretsMentionedInReadme = DotEnvSection.Match(readmeContent);
+            var secretsMentionedInReadme = updater.SectionToUpdateRegex.Match(readmeContent);
 
             if (!secretsMentionedInReadme.Success)
             {
                 var stringBuilder = new StringBuilder();
                 stringBuilder.AppendLine("Your README.md file should contain the following section:");
-                AppendExampleEnvFileDocumentationSection(stringBuilder, expectedEnvVarSecrets);
+                updater.AppendSection(stringBuilder, expectedEnvVarSecrets);
                 _output.WriteLine(stringBuilder.ToString());
                 return false;
             }
 
-            var contentToReplace = secretsMentionedInReadme.Groups["envVars"].Value;
-            var knownSecrets = secretsMentionedInReadme.Groups["envVars"].Value.Split(Environment.NewLine).Where(s => !string.IsNullOrWhiteSpace(s));
-            var allSecrets = GetExpectedEnvVarSecretsFromLoadedAssemblies().Union(knownSecrets).Distinct().OrderBy(s => s);
+            var contentToReplace = secretsMentionedInReadme.Groups["params"].Value;
+            var knownSecrets = secretsMentionedInReadme.Groups["params"].Value.Split(Environment.NewLine).Where(s => !string.IsNullOrWhiteSpace(s));
+            var allSecrets = expectedEnvVarSecrets.Union(knownSecrets).Distinct().OrderBy(s => s);
             var newContent = string.Join(Environment.NewLine, allSecrets) + Environment.NewLine;
             var newReadmeContent = readmeContent.Replace(contentToReplace, newContent, StringComparison.InvariantCulture);
 
@@ -99,38 +111,17 @@ public abstract class EnvFileDocumentationUpdaterBase
         return repositoryRoot;
     }
 
-    private static void AppendExampleEnvFileDocumentationSection(StringBuilder builder, List<string> expectedEnvVars)
-    {
-        builder.AppendLine("## Creating your local .env file");
-        builder.AppendLine("In order to be able to run some integration tests, you should create a `.env` file in the `src` folder with the following variables:");
-        builder.AppendLine("```secretsEnvVariables");
-        builder.AppendLine(string.Join(Environment.NewLine, expectedEnvVars));
-        builder.AppendLine("```");
-        builder.AppendLine(string.Empty);
-    }
-
-    private List<string> GetExpectedEnvVarSecretsFromLoadedAssemblies()
+    private List<string> GetExpectedEnvVarSecretsFromLoadedAssemblies<T>(string prefix = "", string postfix = "") where T : ConfigurationParameterAttribute
     {
         var assemblies = LoadReferencedAssembliesMetadata()
             .Where(a => a.FullName?.StartsWith("Trakx.") ?? false);
-        var explorationContext = new AssemblyLoadContext(nameof(EnvFileDocumentationUpdaterBase), true);
+        var explorationContext = new AssemblyLoadContext(nameof(ReadmeDocumentationUpdaterBase), true);
 
         var result = assemblies.SelectMany(currentAssembly =>
             {
                 _output.WriteLine("Inspecting assembly {0}", currentAssembly.FullName);
-                var assemblyTypes = currentAssembly.GetTypes();
-                if (!assemblyTypes.Any(t => t.FullName?.EndsWith("Configuration") ?? false))
-                    return Enumerable.Empty<string>();
-                var fullyLoadedAssembly = explorationContext.LoadFromAssemblyPath(currentAssembly.Location);
-                var configTypes = fullyLoadedAssembly.GetTypes().Where(t => t.FullName?.EndsWith("Configuration") ?? false);
-                var secrets = configTypes
-                    .SelectMany(t => t.GetProperties()
-                        .Select(p =>
-                            p.GetCustomAttribute(typeof(SecretEnvironmentVariableAttribute)) is SecretEnvironmentVariableAttribute attribute
-                                ? (attribute.VarName ?? $"{t.Name}__{p.Name}")+"=********"
-                                : null))
-                    .Where(s => !string.IsNullOrEmpty(s))
-                    .ToList();
+                var configTypes = GetAllConfigurationTypesFromAssembly(currentAssembly, explorationContext);
+                var secrets = ConfigurationParameterAttribute.GetConfigPathsFromConfigTypes<T>(configTypes, prefix, postfix);
                 return secrets.Select(s => s!);
             })
             .Distinct()
@@ -140,6 +131,21 @@ public abstract class EnvFileDocumentationUpdaterBase
         explorationContext.Unload();
 
         return result;
+    }
+
+    private static List<Type> GetAllConfigurationTypesFromAssembly(Assembly currentAssembly,
+        AssemblyLoadContext explorationContext)
+    {
+        var assemblyTypes = currentAssembly.GetTypes();
+        if (!assemblyTypes.Any(t => t.FullName?.EndsWith("Configuration") ?? false))
+        {
+            return new List<Type>();
+        }
+
+        var fullyLoadedAssembly = explorationContext.LoadFromAssemblyPath(currentAssembly.Location);
+        var configTypes = fullyLoadedAssembly.GetTypes().Where(t => t.FullName?.EndsWith("Configuration") ?? false)
+            .ToList();
+        return configTypes;
     }
 
     private List<Assembly> LoadReferencedAssembliesMetadata(int maxRecursions = 10)

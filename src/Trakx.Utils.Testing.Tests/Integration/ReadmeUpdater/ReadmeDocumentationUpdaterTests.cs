@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using Trakx.Utils.Attributes;
+using Trakx.Utils.Testing.ReadmeUpdater;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,18 +13,17 @@ namespace Trakx.Utils.Testing.Tests.Integration;
 
 internal class FakeConfiguration
 {
+    [AwsParameter]
     [SecretEnvironmentVariable("SecretAbc")]
     public string? SecretString { get; set; }
 
+    [AwsParameter("Forced/Path")]
     [SecretEnvironmentVariable("Secret123")]
     public int? SecretNumber { get; set; }
 
+    [AwsParameter]
     [SecretEnvironmentVariable]
     public string? ImplicitlyNamedSecret { get; set; }
-
-
-    [SecretEnvironmentVariable("SomeConfigClassName", "SomePropertyName")]
-    public string? ExplicitTypePropertyNamedSecret { get; set; }
 
 #pragma warning disable S1144, IDE0051 // Unused private types or members should be removed
     // ReSharper disable once UnusedMember.Local
@@ -32,9 +32,9 @@ internal class FakeConfiguration
 
 }
 
-internal class EnvFileDocumentationUpdater : EnvFileDocumentationUpdaterBase
+internal class ReadmeDocumentationUpdater : ReadmeDocumentationUpdaterBase
 {
-    public EnvFileDocumentationUpdater(ITestOutputHelper output, IReadmeEditor? editor = null, bool simulateExistingValidFile = true)
+    public ReadmeDocumentationUpdater(ITestOutputHelper output, IReadmeEditor? editor = null, bool simulateExistingValidFile = true)
         : base(output, editor ?? Substitute.For<IReadmeEditor>())
     {
         if(!simulateExistingValidFile) return;
@@ -43,23 +43,32 @@ internal class EnvFileDocumentationUpdater : EnvFileDocumentationUpdaterBase
                                 "Secret123=********" + Environment.NewLine +
                                 "SecretAbc=********" + Environment.NewLine +
                                 "SomeConfigClassName__SomePropertyName=********" + Environment.NewLine +
-                                "```" + Environment.NewLine;
-        Editor.ExtractReadmeContent().Returns(
-            fakeReadmeContent);
+                                "```" + Environment.NewLine +
+                                Environment.NewLine +
+                                "```awsParams" + Environment.NewLine +
+                                "FakeConfiguration__ImplicitlyNamedSecret=********" + Environment.NewLine +
+                                "Secret123=********" + Environment.NewLine +
+                                "SecretAbc=********" + Environment.NewLine +
+                                "SomeConfigClassName__SomePropertyName=********" + Environment.NewLine +
+                                "```" + Environment.NewLine
+                                ;
+
+        Editor.ExtractReadmeContent().Returns(fakeReadmeContent);
+
         Editor.When(e => e.UpdateReadmeContent(Arg.Any<string>()))
             .Do(ci => (ci[0] as string).Should().Be(fakeReadmeContent, "the content should not change."));
     }
 }
 
-public class EnvFileDocumentationUpdaterTests
+public class ReadmeDocumentationUpdaterTests
 {
-    private readonly EnvFileDocumentationUpdaterBase _updater;
+    private readonly ReadmeDocumentationUpdaterBase _updater;
     private readonly IReadmeEditor _readmeEditor;
 
-    public EnvFileDocumentationUpdaterTests(ITestOutputHelper output)
+    public ReadmeDocumentationUpdaterTests(ITestOutputHelper output)
     {
         _readmeEditor = Substitute.For<IReadmeEditor>();
-        _updater = new EnvFileDocumentationUpdater(output, _readmeEditor, false);
+        _updater = new ReadmeDocumentationUpdater(output, _readmeEditor, false);
     }
 
     [Fact]
@@ -69,12 +78,15 @@ public class EnvFileDocumentationUpdaterTests
             "## Existing Section" + Environment.NewLine +
             "with a paragraph, and some text" + Environment.NewLine);
 
-        var success = await _updater.UpdateEnvFileDocumentation();
-        success.Should().BeFalse();
+        var envSuccess = await _updater.UpdateDocumentation(new EnvVarDocumentationUpdater());
+        envSuccess.Should().BeFalse();
+
+        var awsSuccess = await _updater.UpdateDocumentation(new AwsDocumentationUpdater("Test/Assembly"));
+        awsSuccess.Should().BeFalse();
     }
 
     [Fact]
-    public async Task UpdateEnvFileDocumentation_should_update_when_section_exist()
+    public async Task UpdateDocumentation_for_env_variables_should_update_when_section_exist()
     {
         var secretFromOtherAssembly = "Secret__FromOtherAssembly=********" + Environment.NewLine;
         var existingSecret = "FakeConfiguration__SecretAbc=********" + Environment.NewLine +
@@ -101,7 +113,46 @@ public class EnvFileDocumentationUpdaterTests
         _readmeEditor.ExtractReadmeContent().ReturnsForAnyArgs(
             readmeContent);
 
-        var success = await _updater.UpdateEnvFileDocumentation();
+        var success = await _updater.UpdateDocumentation(new EnvVarDocumentationUpdater());
+        success.Should().BeTrue();
+
+        await _readmeEditor.Received(1).UpdateReadmeContent(Arg.Any<string>()).ConfigureAwait(false);
+        var firstArgument = _readmeEditor.ReceivedCalls()
+            .Single(c => c.GetMethodInfo().Name == nameof(_readmeEditor.UpdateReadmeContent)).GetArguments()[0] as string;
+        secretsToBeAdded.ForEach(s => firstArgument.Should().Contain(s));
+        firstArgument.Should().Contain(secretFromOtherAssembly);
+    }
+
+    [Fact]
+    public async Task UpdateDocumentation_for_aws_should_update_when_section_exist()
+    {
+        var secretFromOtherAssembly = "blablabla/Secret/FromOtherAssembly" + Environment.NewLine;
+        var existingSecret = "/Some/Assembly/FakeConfiguration/SecretString" + Environment.NewLine +
+                             secretFromOtherAssembly +
+                             "/Hello/SomeConfigClassName/SomePropertyName";
+        var secretsToBeAdded = new List<string>
+        {
+            "/Some/Assembly/FakeConfiguration/ImplicitlyNamedSecret" + Environment.NewLine,
+            "/Some/Assembly/Forced/Path" + Environment.NewLine,
+        };
+
+        var textToKeep =
+            "## Existing Section" + Environment.NewLine +
+            "with a paragraph, and some text" + Environment.NewLine +
+            Environment.NewLine + Environment.NewLine +
+            "## AWS Parameters" + Environment.NewLine +
+            "In order to be able to run some integration tests you should ensure that you have access to the following AWS parameters :" + Environment.NewLine +
+            "```awsParams" + Environment.NewLine;
+        var readmeContent =
+            textToKeep +
+            existingSecret + Environment.NewLine +
+            "```" + Environment.NewLine;
+
+        _readmeEditor.ExtractReadmeContent().ReturnsForAnyArgs(
+            readmeContent);
+
+        var variablesPrefix = "/Some/Assembly/";
+        var success = await _updater.UpdateDocumentation(new AwsDocumentationUpdater(variablesPrefix));
         success.Should().BeTrue();
 
         await _readmeEditor.Received(1).UpdateReadmeContent(Arg.Any<string>()).ConfigureAwait(false);

@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Trakx.Utils.Startup\Trakx.Utils.Startup.csproj" />
     <ProjectReference Include="..\Trakx.Utils\Trakx.Utils.csproj" />
   </ItemGroup>
 

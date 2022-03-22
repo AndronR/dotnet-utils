@@ -19,8 +19,17 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
+
     - name: Install dependencies
       run: dotnet restore ${{env.SOLUTION_PATH}}
+
+#    - name: Configure AWS Credentials
+#      uses: aws-actions/configure-aws-credentials@v1
+#      with:
+#        aws-access-key-id: ${{secrets.AWS_ACCES_KEY_ID}}
+#        aws-secret-access-key: ${{secrets.AWS_ACCES_KEY_SECRET}}
+#        aws-region: eu-west-3
+
     - name: Build
       run: |
         dotnet build ${{env.SOLUTION_PATH}} --configuration Debug --no-restore
