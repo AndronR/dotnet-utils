@@ -18,6 +18,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Trakx.Utils", "Trakx.Utils\Trakx.Utils.csproj", "{784921A7-B3F9-4332-BE5F-8FDDBAE6CCA2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{F3B8BAFD-0FB6-4893-A0E3-04CFBA624B9B}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\dependabot.yml = ..\.github\dependabot.yml
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{89462727-7973-4EC7-AD2D-B4486A09A31A}"
 	ProjectSection(SolutionItems) = preProject
@@ -34,6 +37,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trakx.Utils.Startup", "Trakx.Utils.Startup\Trakx.Utils.Startup.csproj", "{7492EA31-C28B-40A9-ADDF-720684BC8A00}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trakx.Utils.Startup.Tests", "Trakx.Utils.Startup.Tests\Trakx.Utils.Startup.Tests.csproj", "{420BBC02-727F-4314-886D-5045E544AB71}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trakx.Utils.Caching", "Trakx.Utils.Caching\Trakx.Utils.Caching.csproj", "{655ECCEB-E355-4418-BDBE-3C68E7AF1018}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +70,10 @@ Global
 		{420BBC02-727F-4314-886D-5045E544AB71}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{420BBC02-727F-4314-886D-5045E544AB71}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{420BBC02-727F-4314-886D-5045E544AB71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{655ECCEB-E355-4418-BDBE-3C68E7AF1018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{655ECCEB-E355-4418-BDBE-3C68E7AF1018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{655ECCEB-E355-4418-BDBE-3C68E7AF1018}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{655ECCEB-E355-4418-BDBE-3C68E7AF1018}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
