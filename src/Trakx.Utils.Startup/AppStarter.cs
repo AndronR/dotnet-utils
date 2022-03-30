@@ -6,9 +6,11 @@ using Serilog;
 using Serilog.Filters;
 using Serilog.Sinks.SystemConsole.Themes;
 using System;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using DotNetEnv;
 using Trakx.Utils.Extensions;
 
 namespace Trakx.Utils.Startup;
@@ -41,7 +43,9 @@ public static class AppStarter
 
         var host = hostBuilder.Build();
         var config = host.Services.GetRequiredService<IConfiguration>();
-        CreateLogger(config);
+        var logger = CreateLogger(config);
+        var configRoot = host.Services.GetRequiredService<IConfigurationRoot>();
+        logger.Information("Host built with configuration: {configRoot}", configRoot.GetDebugView());
         return host;
     }
 
@@ -80,7 +84,9 @@ public static class AppStarter
 
         var host = hostBuilder.Build();
         var config = host.Services.GetRequiredService<IConfiguration>();
-        CreateLogger(config);
+        var logger = CreateLogger(config);
+        var configRoot = host.Services.GetRequiredService<IConfigurationRoot>();
+        logger.Information("Host built with configuration: {configRoot}", configRoot.GetDebugView());
         return host;
     }
 
@@ -142,7 +148,7 @@ public static class AppStarter
          return defaultLogger;
     }
 
-    private static void CreateLogger(IConfiguration configuration)
+    private static ILogger CreateLogger(IConfiguration configuration)
     {
         var loggerConfiguration = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
@@ -154,5 +160,7 @@ public static class AppStarter
         Log.Logger = loggerConfiguration
             .CreateLogger()
             .ForContext(MethodBase.GetCurrentMethod()!.DeclaringType);
+
+        return Log.Logger;
     }
 }
