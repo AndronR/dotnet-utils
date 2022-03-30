@@ -44,7 +44,7 @@ public static class AppStarter
         var host = hostBuilder.Build();
         var config = host.Services.GetRequiredService<IConfiguration>();
         var logger = CreateLogger(config);
-        var configRoot = host.Services.GetRequiredService<IConfigurationRoot>();
+        var configRoot = config as IConfigurationRoot;
         logger.Information("Host built with configuration: {configRoot}", configRoot.GetDebugView());
         return host;
     }
@@ -85,7 +85,7 @@ public static class AppStarter
         var host = hostBuilder.Build();
         var config = host.Services.GetRequiredService<IConfiguration>();
         var logger = CreateLogger(config);
-        var configRoot = host.Services.GetRequiredService<IConfigurationRoot>();
+        var configRoot = config as IConfigurationRoot;
         logger.Information("Host built with configuration: {configRoot}", configRoot.GetDebugView());
         return host;
     }

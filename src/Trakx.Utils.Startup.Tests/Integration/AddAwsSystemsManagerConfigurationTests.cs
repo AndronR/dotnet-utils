@@ -4,11 +4,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Trakx.Utils.Attributes;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Trakx.Utils.Startup.Tests.Integration;
 
 public class AddAwsSystemsManagerConfigurationTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public AddAwsSystemsManagerConfigurationTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
     private record FakeConfiguration
     {
         [AwsParameterAttribute]
@@ -21,6 +28,7 @@ public class AddAwsSystemsManagerConfigurationTests
     const string Environment = "ci-cd";
 
     [Fact(Skip = "look at https://github.com/aws-actions/configure-aws-credentials/issues/271 and try to fix the permissions of the ci-cd-service-user")]
+    //[Fact]
     public void AddAwsSystemsManagerConfiguration_should_use_path_from_namespace()
     {
         var envVarSetup = $"{AspNetCoreEnvironmentVariable}={Environment}";
@@ -41,5 +49,8 @@ public class AddAwsSystemsManagerConfigurationTests
 
         //the definition and values of these parameters is set on AWS parameter store
         config.GetSection(nameof(FakeConfiguration))[nameof(FakeConfiguration.SecretConfigParam)].Should().Be("Three Views of a Secret");
+
+        var configRoot = config as IConfigurationRoot;
+        _output.WriteLine(configRoot.GetDebugView());
     }
 }
