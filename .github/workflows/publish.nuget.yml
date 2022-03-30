@@ -44,18 +44,18 @@ jobs:
           echo "compilation mode set to $COMP_MODE"
 
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Bump version
         id: bumpVersion
-        uses: trakx/bump-version-action@v7
+        uses: trakx/bump-version-action@v8
         with:
           semverIncrementLevel: ${{github.event.inputs.semverIncrementLevel}}
           releaseBranches: master
           githubToken: ${{secrets.GITHUB_TOKEN}}
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1.7.2
+        uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 6.0.x
 
@@ -93,7 +93,7 @@ jobs:
             --source "https://nuget.pkg.github.com/trakx/index.json"; done
 
       - name: push version tag
-        uses: anothrNick/github-tag-action@1.26.0
+        uses: anothrNick/github-tag-action@1.38.0
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           CUSTOM_TAG: v${{steps.bumpVersion.outputs.fullVersion}}
