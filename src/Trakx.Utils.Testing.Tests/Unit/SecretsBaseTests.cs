@@ -20,8 +20,11 @@ public class SecretsBaseTests
 
     private record TestConfigurationSection
     {
+        #nullable disable
         public string PrivateKey { get; init; }
         public string PublicKey { get; init; }
+        #nullable restore
         public string? NotSetByEnv { get; init; }
+
     }
 }

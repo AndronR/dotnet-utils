@@ -27,13 +27,15 @@ public static class AppStarter
     /// stay consistent across projects.
     /// </summary>
     /// <param name="args"></param>
+    /// <param name="configureDefaultsAction">Action to be performed </param>
     /// <typeparam name="TStartup"></typeparam>
     /// <returns></returns>
-    public static IHost BuildWebHost<TStartup>(string[] args) where TStartup : class
+    public static IHost BuildWebHost<TStartup>(string[] args, Action<IWebHostBuilder>? configureDefaultsAction = null) where TStartup : class
     {
         LoadVariablesFromEnvFile();
 
-        var hostBuilder = CreateHostBuilder<TStartup>(args);
+        var configureBuilderAction = configureDefaultsAction ?? (_ => { });
+        var hostBuilder = CreateHostBuilder<TStartup>(args, configureBuilderAction);
 
         hostBuilder.AddAwsSystemsManagerConfiguration<TStartup>();
 
@@ -43,17 +45,24 @@ public static class AppStarter
         return host;
     }
 
+
     /// <summary>
     /// Implement a non generic version of this method in the Program.cs
     /// class of the service using this AppStarter to ensure that Nswag
     /// can still generate API clients on build.
     /// </summary>
-    public static IHostBuilder CreateHostBuilder<TStartup>(string[] args) where TStartup : class
+    public static IHostBuilder CreateHostBuilder<TStartup>(string[] args, Action<IWebHostBuilder>? configureDefaultsAction = null) where TStartup : class
     {
+        var configureBuilderAction = configureDefaultsAction ?? (_ => { });
+
         var hostBuilder = Host
             .CreateDefaultBuilder(args)
             .ConfigureAppConfiguration(b => b.AddEnvironmentVariables())
-            .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<TStartup>(); })
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                configureBuilderAction(webBuilder);
+                webBuilder.UseStartup<TStartup>();
+            })
             .UseSerilog();
         return hostBuilder;
     }
