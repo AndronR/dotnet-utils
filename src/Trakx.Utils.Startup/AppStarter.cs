@@ -6,11 +6,9 @@ using Serilog;
 using Serilog.Filters;
 using Serilog.Sinks.SystemConsole.Themes;
 using System;
-using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using DotNetEnv;
 using Trakx.Utils.Extensions;
 
 namespace Trakx.Utils.Startup;
@@ -22,7 +20,7 @@ namespace Trakx.Utils.Startup;
 /// </summary>
 public static class AppStarter
 {
-    private const string OutputTemplate = "[{Timestamp:yyyy-MM-dd HH:mm:ss}][{Level:u3}]{Properties:lj} {Message} <{SourceContext}>{NewLine}{Exception}";
+    private const string OutputTemplate = "[{Timestamp:yyyy-MM-dd HH:mm:ss}][{Level:u3}]{Properties:lj} {Message:l} <{SourceContext}>{NewLine}{Exception}";
 
     /// <summary>
     /// Use this method in the Program.cs to avoid re-writing code that should
