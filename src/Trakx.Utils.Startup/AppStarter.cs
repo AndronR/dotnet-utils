@@ -12,6 +12,7 @@ using System.Reflection;
 using Amazon.Extensions.Configuration.SystemsManager;
 using Trakx.Utils.Extensions;
 
+
 namespace Trakx.Utils.Startup;
 
 /// <summary>
@@ -21,6 +22,7 @@ namespace Trakx.Utils.Startup;
 /// </summary>
 public static class AppStarter
 {
+    private static string useless = AWSSDK.Runtime.Internal.Util.ChecksumCRTWrapper.Crc32(new byte[] { });
     private const string OutputTemplate = "[{Timestamp:yyyy-MM-dd HH:mm:ss}][{Level:u3}]{Properties:lj} {Message:l} <{SourceContext}>{NewLine}{Exception}";
 
     /// <summary>
