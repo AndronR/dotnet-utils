@@ -88,7 +88,7 @@ public static class AppStarter
 
     private static void LogConfiguration(IConfiguration config, ILogger logger)
     {
-        if (DefaultEnvironment  != Environments.Development || DefaultEnvironment != Environments.Stage) return;
+        if (DefaultEnvironment  != Environments.Development && DefaultEnvironment != Environments.Stage) return;
         var configRoot = config as IConfigurationRoot;
         logger.Information("Host built with configuration: {configRoot}", configRoot.GetDebugView());
     }
