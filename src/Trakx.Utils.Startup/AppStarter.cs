@@ -9,6 +9,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using Amazon.Extensions.Configuration.SystemsManager;
 using Trakx.Utils.Extensions;
 
 namespace Trakx.Utils.Startup;
@@ -112,21 +113,29 @@ public static class AppStarter
         {
             var defaultedEnvironment = environment ?? DefaultEnvironment;
             var application = typeof(TTypeFromApplicationAssembly).Assembly.GetName().Name!;
-            configSource.Path = $"/{defaultedEnvironment}/{application.Replace(".", "/")}";
+            var configSourcePath = $"/{defaultedEnvironment}/{application.Replace(".", "/")}";
+            configSource.Path = configSourcePath;
             configSource.ReloadAfter = TimeSpan.FromMinutes(5);
-            configSource.Optional = true;
-            configSource.OnLoadException += exceptionContext =>
-            {
-                var logger = CreateDefaultLogger();
-                logger.Error(exceptionContext.Exception,
-                    "Failed to load config parameters from AWS using path {path}",
-                    configSource.Path);
-            };
+            configSource.Optional = OptionalAwsConfiguration;
+            configSource.OnLoadException += exceptionContext => { LogAwsLoadException(exceptionContext, configSourcePath); };
         });
         return builder;
     }
 
+
+
+    private static void LogAwsLoadException(SystemsManagerExceptionContext exceptionContext,
+        string configSourcePath)
+    {
+        var logger = CreateDefaultLogger();
+        logger.Error(exceptionContext.Exception,
+            "Failed to load config parameters from AWS using path {path}",
+            configSourcePath);
+    }
+
     private static string DefaultEnvironment => Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
+    private static bool OptionalAwsConfiguration =>
+        bool.TryParse(Environment.GetEnvironmentVariable("OPTIONAL_AWS_CONFIGURATION"), out var optional) && optional;
 
     [Conditional("DEBUG")]
     private static void LoadVariablesFromEnvFile()
