@@ -42,8 +42,7 @@ public static class AppStarter
         var host = hostBuilder.Build();
         var config = host.Services.GetRequiredService<IConfiguration>();
         var logger = CreateLogger(config);
-        var configRoot = config as IConfigurationRoot;
-        logger.Information("Host built with configuration: {configRoot}", configRoot.GetDebugView());
+        LogConfiguration(config, logger);
         return host;
     }
 
@@ -83,9 +82,15 @@ public static class AppStarter
         var host = hostBuilder.Build();
         var config = host.Services.GetRequiredService<IConfiguration>();
         var logger = CreateLogger(config);
+        LogConfiguration(config, logger);
+        return host;
+    }
+
+    private static void LogConfiguration(IConfiguration config, ILogger logger)
+    {
+        if (DefaultEnvironment  != Environments.Development || DefaultEnvironment != Environments.Stage) return;
         var configRoot = config as IConfigurationRoot;
         logger.Information("Host built with configuration: {configRoot}", configRoot.GetDebugView());
-        return host;
     }
 
     /// <summary>
@@ -105,7 +110,7 @@ public static class AppStarter
     {
         builder.AddSystemsManager(configSource =>
         {
-            var defaultedEnvironment = environment ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
+            var defaultedEnvironment = environment ?? DefaultEnvironment;
             var application = typeof(TTypeFromApplicationAssembly).Assembly.GetName().Name!;
             configSource.Path = $"/{defaultedEnvironment}/{application.Replace(".", "/")}";
             configSource.ReloadAfter = TimeSpan.FromMinutes(5);
@@ -120,6 +125,8 @@ public static class AppStarter
         });
         return builder;
     }
+
+    private static string DefaultEnvironment => Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
 
     [Conditional("DEBUG")]
     private static void LoadVariablesFromEnvFile()
