@@ -22,7 +22,12 @@ namespace Trakx.Utils.Startup;
 /// </summary>
 public static class AppStarter
 {
-    private static string useless = AWSSDK.Runtime.Internal.Util.ChecksumCRTWrapper.Crc32(new byte[] { });
+    /// <summary>
+    /// Forces the reference to AWSSDK.SecurityToken to make sure the dll gets published
+    /// along with the package. This seems to be an issue on the amazon package
+    /// Amazon.Extensions.Configuration.SystemsManager
+    /// </summary>
+    private static string _useless = AWSSDK.Runtime.Internal.Util.ChecksumCRTWrapper.Crc32(new byte[] { });
     private const string OutputTemplate = "[{Timestamp:yyyy-MM-dd HH:mm:ss}][{Level:u3}]{Properties:lj} {Message:l} <{SourceContext}>{NewLine}{Exception}";
 
     /// <summary>
@@ -116,6 +121,8 @@ public static class AppStarter
             var defaultedEnvironment = environment ?? DefaultEnvironment;
             var application = typeof(TTypeFromApplicationAssembly).Assembly.GetName().Name!;
             var configSourcePath = $"/{defaultedEnvironment}/{application.Replace(".", "/")}";
+
+
             configSource.Path = configSourcePath;
             configSource.ReloadAfter = TimeSpan.FromMinutes(5);
             configSource.Optional = OptionalAwsConfiguration;
