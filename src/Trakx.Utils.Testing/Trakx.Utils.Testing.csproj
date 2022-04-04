@@ -8,7 +8,7 @@
   <Import Project="../Packable.Projects.props" />
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="6.5.1" />
+    <PackageReference Include="FluentAssertions" Version="6.6.0" />
     <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.2.0" />
     <PackageReference Include="NSubstitute" Version="4.3.0" />
     <PackageReference Include="System.Reflection.MetadataLoadContext" Version="6.0.0" />

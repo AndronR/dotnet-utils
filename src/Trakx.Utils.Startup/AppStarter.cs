@@ -9,7 +9,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using Amazon.Extensions.Configuration.SystemsManager;
 using Trakx.Utils.Extensions;
+
 
 namespace Trakx.Utils.Startup;
 
@@ -20,6 +22,12 @@ namespace Trakx.Utils.Startup;
 /// </summary>
 public static class AppStarter
 {
+    /// <summary>
+    /// Forces the reference to AWSSDK.SecurityToken to make sure the dll gets published
+    /// along with the package. This seems to be an issue on the amazon package
+    /// Amazon.Extensions.Configuration.SystemsManager
+    /// </summary>
+    private static string _useless = AWSSDK.Runtime.Internal.Util.ChecksumCRTWrapper.Crc32(new byte[] { });
     private const string OutputTemplate = "[{Timestamp:yyyy-MM-dd HH:mm:ss}][{Level:u3}]{Properties:lj} {Message:l} <{SourceContext}>{NewLine}{Exception}";
 
     /// <summary>
@@ -112,21 +120,31 @@ public static class AppStarter
         {
             var defaultedEnvironment = environment ?? DefaultEnvironment;
             var application = typeof(TTypeFromApplicationAssembly).Assembly.GetName().Name!;
-            configSource.Path = $"/{defaultedEnvironment}/{application.Replace(".", "/")}";
+            var configSourcePath = $"/{defaultedEnvironment}/{application.Replace(".", "/")}";
+
+
+            configSource.Path = configSourcePath;
             configSource.ReloadAfter = TimeSpan.FromMinutes(5);
-            configSource.Optional = true;
-            configSource.OnLoadException += exceptionContext =>
-            {
-                var logger = CreateDefaultLogger();
-                logger.Error(exceptionContext.Exception,
-                    "Failed to load config parameters from AWS using path {path}",
-                    configSource.Path);
-            };
+            configSource.Optional = OptionalAwsConfiguration;
+            configSource.OnLoadException += exceptionContext => { LogAwsLoadException(exceptionContext, configSourcePath); };
         });
         return builder;
     }
 
+
+
+    private static void LogAwsLoadException(SystemsManagerExceptionContext exceptionContext,
+        string configSourcePath)
+    {
+        var logger = CreateDefaultLogger();
+        logger.Error(exceptionContext.Exception,
+            "Failed to load config parameters from AWS using path {path}",
+            configSourcePath);
+    }
+
     private static string DefaultEnvironment => Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
+    private static bool OptionalAwsConfiguration =>
+        bool.TryParse(Environment.GetEnvironmentVariable("OPTIONAL_AWS_CONFIGURATION"), out var optional) && optional;
 
     [Conditional("DEBUG")]
     private static void LoadVariablesFromEnvFile()
