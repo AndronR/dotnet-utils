@@ -9,7 +9,7 @@ using Trakx.Utils.Testing.ReadmeUpdater;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Trakx.Utils.Testing.Tests.Integration;
+namespace Trakx.Utils.Testing.Tests.Integration.ReadmeUpdater;
 
 internal class FakeConfiguration
 {
