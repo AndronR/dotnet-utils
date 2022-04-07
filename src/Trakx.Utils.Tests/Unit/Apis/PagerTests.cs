@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using Trakx.Utils.Apis;
+using Trakx.Utils.Testing.Apis;
 using Xunit;
 
 namespace Trakx.Utils.Tests.Unit.Apis;
@@ -24,8 +25,7 @@ public class PagerTests
         _client = Substitute.For<IResponseClient>();
 
         _client.GetResponse(Arg.Any<int>(), Arg.Any<int>())
-            .Returns(ci => new Response<List<int>>(200, null,
-                _expectedList.Skip(((int)ci[0] - 1)*(int)ci[1]).Take((int)ci[1]).ToList()));
+            .Returns(ci => _expectedList.Skip(((int)ci[0] - 1)*(int)ci[1]).Take((int)ci[1]).ToList().AsResponse());
     }
 
     [Fact]
