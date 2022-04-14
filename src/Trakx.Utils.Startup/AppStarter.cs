@@ -31,71 +31,144 @@ public static class AppStarter
     private const string OutputTemplate = "[{Timestamp:yyyy-MM-dd HH:mm:ss}][{Level:u3}]{Properties:lj} {Message:l} <{SourceContext}>{NewLine}{Exception}";
 
     /// <summary>
-    /// Use this method in the Program.cs to avoid re-writing code that should
-    /// stay consistent across projects.
+    /// Use this method in the Program.cs to build an AWS configured web host.
     /// </summary>
-    /// <param name="args"></param>
-    /// <param name="configureDefaultsAction">Action to be performed </param>
-    /// <typeparam name="TStartup"></typeparam>
-    /// <returns></returns>
-    public static IHost BuildWebHost<TStartup>(string[] args, Action<IWebHostBuilder>? configureDefaultsAction = null) where TStartup : class
+    public static IHost BuildWebHost<TStartup>(string[] args, Action<IWebHostBuilder>? configureDefaultsAction = null)
+        where TStartup : class
     {
-        LoadVariablesFromEnvFile();
-
         var configureBuilderAction = configureDefaultsAction ?? (_ => { });
-        var hostBuilder = CreateHostBuilder<TStartup>(args, configureBuilderAction);
-
-        hostBuilder.AddAwsSystemsManagerConfiguration<TStartup>();
+        var hostBuilder = CreateWebHostBuilder<TStartup>(args, configureBuilderAction);
 
         var host = hostBuilder.Build();
-        var config = host.Services.GetRequiredService<IConfiguration>();
-        var logger = CreateLogger(config);
-        LogConfiguration(config, logger);
+        ConfigureLoggerAndLogConfiguration(host);
         return host;
     }
 
+    /// <summary>
+    /// Use this method in the Program.cs to build an AWS configured web host, with a custom service
+    /// provider factory, such as AutoFac.
+    /// </summary>
+    public static IHost BuildWebHost<TStartup, TContainerBuilder>(string[] args,
+        Func<HostBuilderContext, IServiceProviderFactory<TContainerBuilder>> configureServiceProviderFactory,
+        Action<IWebHostBuilder>? configureDefaultsAction = null)
+        where TStartup : class
+        where TContainerBuilder : notnull
+    {
+        var configureBuilderAction = configureDefaultsAction ?? (_ => { });
+        var hostBuilder = CreateWebHostBuilder<TStartup, TContainerBuilder>(args, configureServiceProviderFactory, configureBuilderAction);
+
+        var host = hostBuilder.Build();
+        ConfigureLoggerAndLogConfiguration(host);
+        return host;
+    }
+
+    /// <summary>
+    /// Use this method in the Program.cs to build an AWS configured console host.
+    /// </summary>
+    public static IHost BuildConsoleHost<TProgram>(string[] args, Action<HostBuilderContext, IServiceCollection> configureDelegate)
+    {
+        var hostBuilder = CreateHostBuilder<TProgram>(args)
+            .ConfigureServices(configureDelegate);
+
+        var host = hostBuilder.Build();
+        ConfigureLoggerAndLogConfiguration(host);
+        return host;
+    }
+
+    /// <summary>
+    /// Use this method in the Program.cs to build an AWS configured console host, with a custom service
+    /// provider factory, such as AutoFac.
+    /// </summary>
+    public static IHost BuildConsoleHost<TProgram, TContainerBuilder>(string[] args,
+        Func<HostBuilderContext, IServiceProviderFactory<TContainerBuilder>> configureServiceProviderFactory,
+        Action<HostBuilderContext, IServiceCollection> configureDelegate)
+        where TContainerBuilder : notnull
+    {
+        var hostBuilder = CreateHostBuilder<TProgram>(args)
+            .ConfigureServices(configureDelegate);
+
+        var host = hostBuilder.Build();
+        ConfigureLoggerAndLogConfiguration(host);
+        return host;
+    }
 
     /// <summary>
     /// Implement a non generic version of this method in the Program.cs
     /// class of the service using this AppStarter to ensure that Nswag
     /// can still generate API clients on build.
     /// </summary>
-    public static IHostBuilder CreateHostBuilder<TStartup>(string[] args, Action<IWebHostBuilder>? configureDefaultsAction = null) where TStartup : class
+    public static IHostBuilder CreateWebHostBuilder<TStartup>(string[] args,
+        Action<IWebHostBuilder>? configureDefaultsAction = null)
+        where TStartup : class
     {
         var configureBuilderAction = configureDefaultsAction ?? (_ => { });
 
-        var hostBuilder = Host
-            .CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration(b => b.AddEnvironmentVariables())
+        var hostBuilder = CreateHostBuilder<TStartup>(args)
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 configureBuilderAction(webBuilder);
                 webBuilder.UseStartup<TStartup>();
-            })
-            .UseSerilog();
+            });
+
         return hostBuilder;
     }
 
-    public static IHost BuildConsoleHost<TProgram>(string[] args, Action<HostBuilderContext, IServiceCollection> configureDelegate)
+    /// <summary>
+    /// Implement a non generic version of this method in the Program.cs
+    /// class of the service using this AppStarter to ensure that Nswag
+    /// can still generate API clients on build.
+    /// </summary>
+    public static IHostBuilder CreateWebHostBuilder<TStartup, TContainerBuilder>(string[] args,
+        Func<HostBuilderContext, IServiceProviderFactory<TContainerBuilder>> configureServiceProviderFactory,
+        Action<IWebHostBuilder>? configureDefaultsAction = null)
+        where TStartup : class
+        where TContainerBuilder : notnull
+    {
+        var configureBuilderAction = configureDefaultsAction ?? (_ => { });
+
+        var hostBuilder = CreateHostBuilder<TStartup, TContainerBuilder>(args, configureServiceProviderFactory)
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                configureBuilderAction(webBuilder);
+                webBuilder.UseStartup<TStartup>();
+            });
+
+        return hostBuilder;
+    }
+
+    /// <summary>
+    /// Use this override to provide a different ServiceProviderFactory than the default .Net one,
+    /// such as Autofac.
+    /// </summary>
+    private static IHostBuilder CreateHostBuilder<TFromAssembly, TContainerBuilder>(string[] args,
+        Func<HostBuilderContext, IServiceProviderFactory<TContainerBuilder>> configureServiceProviderFactory)
+        where TFromAssembly : class
+        where TContainerBuilder : notnull
+    {
+        var hostBuilder = CreateHostBuilder<TFromAssembly>(args);
+
+        hostBuilder.UseServiceProviderFactory(configureServiceProviderFactory);
+
+        return hostBuilder;
+    }
+
+    private static IHostBuilder CreateHostBuilder<TFromAssembly>(string[] args)
     {
         LoadVariablesFromEnvFile();
 
         var hostBuilder = Host
             .CreateDefaultBuilder(args)
-            .ConfigureServices(configureDelegate)
             .ConfigureAppConfiguration(b => b.AddEnvironmentVariables())
-            .AddAwsSystemsManagerConfiguration<TProgram>()
+            .AddAwsSystemsManagerConfiguration<TFromAssembly>()
             .UseSerilog();
 
-        var host = hostBuilder.Build();
-        var config = host.Services.GetRequiredService<IConfiguration>();
-        var logger = CreateLogger(config);
-        LogConfiguration(config, logger);
-        return host;
+        return hostBuilder;
     }
 
-    private static void LogConfiguration(IConfiguration config, ILogger logger)
+    private static void ConfigureLoggerAndLogConfiguration(IHost host)
     {
+        var config = host.Services.GetRequiredService<IConfiguration>();
+        var logger = ConfigureLogger(config);
         if (DefaultEnvironment  != Environments.Development && DefaultEnvironment != Environments.Staging) return;
         var configRoot = config as IConfigurationRoot;
         logger.Information("Host built with configuration: {configRoot}", configRoot.GetDebugView());
@@ -130,8 +203,6 @@ public static class AppStarter
         });
         return builder;
     }
-
-
 
     private static void LogAwsLoadException(SystemsManagerExceptionContext exceptionContext,
         string configSourcePath)
@@ -171,7 +242,7 @@ public static class AppStarter
          return defaultLogger;
     }
 
-    private static ILogger CreateLogger(IConfiguration configuration)
+    private static ILogger ConfigureLogger(IConfiguration configuration)
     {
         var loggerConfiguration = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
