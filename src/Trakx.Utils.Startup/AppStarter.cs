@@ -83,8 +83,9 @@ public static class AppStarter
         Func<HostBuilderContext, IServiceProviderFactory<TContainerBuilder>> configureServiceProviderFactory,
         Action<HostBuilderContext, IServiceCollection> configureDelegate)
         where TContainerBuilder : notnull
+        where TProgram : class
     {
-        var hostBuilder = CreateHostBuilder<TProgram>(args)
+        var hostBuilder = CreateHostBuilder<TProgram, TContainerBuilder>(args, configureServiceProviderFactory)
             .ConfigureServices(configureDelegate);
 
         var host = hostBuilder.Build();
