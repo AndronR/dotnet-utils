@@ -48,7 +48,7 @@ jobs:
 
       - name: Bump version
         id: bumpVersion
-        uses: trakx/bump-version-action@v9.0.0
+        uses: trakx/bump-version-action@v9.0.1
         with:
           semverIncrementLevel: ${{github.event.inputs.semverIncrementLevel}}
           releaseBranches: master
@@ -93,7 +93,7 @@ jobs:
             --source "https://nuget.pkg.github.com/trakx/index.json"; done
 
       - name: push version tag
-        uses: anothrNick/github-tag-action@1.38.0
+        uses: anothrNick/github-tag-action@1.39.0
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           CUSTOM_TAG: v${{steps.bumpVersion.outputs.fullVersion}}
