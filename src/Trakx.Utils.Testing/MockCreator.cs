@@ -49,4 +49,11 @@ public class MockCreator
     public decimal GetRandomPrice() => Random.Next(1, int.MaxValue) / 1e5m;
     public decimal GetRandomValue() => Random.Next(1, int.MaxValue) / 1e2m;
     public TimeSpan GetRandomTimeSpan(double maxDurationInDays = 1000) => TimeSpan.FromSeconds(Random.Next(1, (int)TimeSpan.FromDays(maxDurationInDays).TotalSeconds));
+
+    public T GetRandomEnumValue<T>()
+    {
+        var length = typeof(T).GetEnumValues().Length;
+        return (T)typeof(T).GetEnumValues().GetValue(Random.Next(0, length))!;
+    }
+
 }

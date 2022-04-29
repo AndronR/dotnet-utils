@@ -23,16 +23,18 @@ namespace Trakx.Utils.Testing.ReadmeUpdater;
 /// </summary>
 public abstract class ReadmeDocumentationUpdaterBase : IDisposable
 {
+    private readonly int _maxRecursions;
     private readonly ITestOutputHelper _output;
     private readonly IReadmeEditor _editor;
     internal IReadmeEditor Editor => _editor;
     private readonly PathAssemblyResolver _resolver;
     protected readonly Assembly ImplementingAssembly;
 
-    protected ReadmeDocumentationUpdaterBase(ITestOutputHelper output) : this(output, default) { }
+    protected ReadmeDocumentationUpdaterBase(ITestOutputHelper output, int maxRecursions = 1) : this(output, default, maxRecursions)
+    { }
 
 #pragma warning disable S3442 // "abstract" classes should not have "public" constructors
-    internal ReadmeDocumentationUpdaterBase(ITestOutputHelper output, IReadmeEditor? editor)
+    internal ReadmeDocumentationUpdaterBase(ITestOutputHelper output, IReadmeEditor? editor, int maxRecursions = 1)
 #pragma warning restore S3442 // "abstract" classes should not have "public" constructors
     {
         _output = output;
@@ -41,6 +43,8 @@ public abstract class ReadmeDocumentationUpdaterBase : IDisposable
 
         _editor = editor ?? new ReadmeEditor(readmeFilePath);
         _resolver = GetTrakxAssemblyResolver();
+        _maxRecursions = maxRecursions;
+
         ImplementingAssembly = GetType().Assembly;
     }
 
@@ -148,7 +152,7 @@ public abstract class ReadmeDocumentationUpdaterBase : IDisposable
         return configTypes;
     }
 
-    private List<Assembly> LoadReferencedAssembliesMetadata(int maxRecursions = 10)
+    private List<Assembly> LoadReferencedAssembliesMetadata()
     {
         var explorationContext = new MetadataLoadContext(_resolver);
 
@@ -174,7 +178,7 @@ public abstract class ReadmeDocumentationUpdaterBase : IDisposable
                 catch (Exception e) { _output.WriteLine("Failed to load assembly {0} with exception {1}", name, e); }
             }
 
-        } while (newAssemblyNames.Any() && recursions < maxRecursions);
+        } while (newAssemblyNames.Any() && recursions <= _maxRecursions);
 
         return knownAssemblies;
     }

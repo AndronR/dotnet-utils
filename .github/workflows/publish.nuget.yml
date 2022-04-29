@@ -43,16 +43,14 @@ jobs:
           echo '::set-output name=compilationMode::'$COMP_MODE
           echo "compilation mode set to $COMP_MODE"
 
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v3
 
       - name: Bump version
         id: bumpVersion
-        uses: trakx/bump-version-action@v9.1.0
+        uses: trakx/bump-version-action/get-tag@v9.1.1
         with:
           semverIncrementLevel: ${{github.event.inputs.semverIncrementLevel}}
-          releaseBranches: master
-          githubToken: ${{secrets.GITHUB_TOKEN}}
 
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v2
@@ -92,10 +90,9 @@ jobs:
           for f in ./nuget/*.symbols.nupkg; do echo "pushing $f file.." && dotnet nuget push $f --api-key ${{secrets.GITHUB_TOKEN}} \
             --source "https://nuget.pkg.github.com/trakx/index.json"; done
 
-      - name: push version tag
+      - name: Push version tag
         id: pushTag
-        uses: trakx/bump-version-action@v9.1.0
+        uses: trakx/bump-version-action/push-tag@v9.1.1
         with:
-          customTag: v${{steps.bumpVersion.outputs.fullVersion}}
+          tag: v${{steps.bumpVersion.outputs.fullVersion}}
           githubToken: ${{secrets.GITHUB_TOKEN}}
-          dryRun: false
