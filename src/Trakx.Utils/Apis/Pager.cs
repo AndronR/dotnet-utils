@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Trakx.Utils.Apis;
+﻿namespace Trakx.Utils.Apis;
 
 public class Pager
 {

@@ -5,9 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Filters;
 using Serilog.Sinks.SystemConsole.Themes;
-using System;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
 using Amazon.Extensions.Configuration.SystemsManager;
 using Trakx.Utils.Extensions;
@@ -239,7 +237,7 @@ public static class AppStarter
             );
          var defaultLogger = loggerConfiguration
             .CreateLogger()
-            .ForContext(MethodBase.GetCurrentMethod()!.DeclaringType);
+            .ForContext(MethodBase.GetCurrentMethod()!.DeclaringType!);
          return defaultLogger;
     }
 
@@ -254,7 +252,7 @@ public static class AppStarter
             );
         Log.Logger = loggerConfiguration
             .CreateLogger()
-            .ForContext(MethodBase.GetCurrentMethod()!.DeclaringType);
+            .ForContext(MethodBase.GetCurrentMethod()!.DeclaringType!);
 
         return Log.Logger;
     }

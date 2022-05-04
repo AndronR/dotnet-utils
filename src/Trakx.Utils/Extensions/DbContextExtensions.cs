@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Serilog;
-using System.Linq;
 
 namespace Trakx.Utils.Extensions;
 

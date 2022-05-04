@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Trakx.Utils.Attributes;
+﻿namespace Trakx.Utils.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
 public class SecretEnvironmentVariableAttribute : ConfigurationParameterAttribute

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
+﻿using FluentAssertions;
 using MathNet.Numerics.Statistics;
 using Trakx.Utils.Extensions;
 using Xunit;
