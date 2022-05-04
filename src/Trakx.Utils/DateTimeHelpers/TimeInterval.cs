@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Trakx.Utils.DateTimeHelpers;
+﻿namespace Trakx.Utils.DateTimeHelpers;
 
 public readonly struct TimeInterval : IEquatable<TimeInterval>
 {

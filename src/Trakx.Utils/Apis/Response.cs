@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Trakx.Utils.Apis;
+﻿namespace Trakx.Utils.Apis;
 
 public partial class Response<TResult> : Response
 {

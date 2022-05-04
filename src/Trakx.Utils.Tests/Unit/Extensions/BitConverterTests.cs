@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using FluentAssertions;
 using Trakx.Utils.Serialization.Converters;

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using Xunit.Abstractions;
 
 namespace Trakx.Utils.Testing;

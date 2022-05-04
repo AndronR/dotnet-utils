@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Text.RegularExpressions;
 using Xunit.Abstractions;
 
 namespace Trakx.Utils.Testing;
@@ -54,6 +53,15 @@ public class MockCreator
     {
         var length = typeof(T).GetEnumValues().Length;
         return (T)typeof(T).GetEnumValues().GetValue(Random.Next(0, length))!;
+    }
+
+    public string GetEmailAddress(string? domain = null)
+    {
+        const string regex = @"^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$";
+        if (!string.IsNullOrWhiteSpace(domain) && !Regex.IsMatch(domain, regex))
+            throw new ArgumentException($"{domain} is not a valid domain name");
+        var emailAddress = $"{GetRandomString(10)}@{domain ?? GetRandomString(5) + "." + GetRandomString(3)}";
+        return emailAddress;
     }
 
 }

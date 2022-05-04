@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Trakx.Utils.Testing.Attributes;
+﻿namespace Trakx.Utils.Testing.Attributes;
 //https://docs.microsoft.com/en-us/dotnet/core/testing/order-unit-tests?pivots=xunit
 
 [AttributeUsage(AttributeTargets.Method)]

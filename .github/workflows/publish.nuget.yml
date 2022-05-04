@@ -21,6 +21,7 @@ env:
   TESTING_PROJECT_PATH: "src/Trakx.Utils.Testing/Trakx.Utils.Testing.csproj"
   STARTUP_PROJECT_PATH: "src/Trakx.Utils.Startup/Trakx.Utils.Startup.csproj"
   CACHING_PROJECT_PATH: "src/Trakx.Utils.Caching/Trakx.Utils.Caching.csproj"
+  EMAIL_PROJECT_PATH: "src/Trakx.Utils.Emails/Trakx.Utils.Emails.csproj"
 
 jobs:
 
@@ -81,6 +82,8 @@ jobs:
           dotnet pack ${{env.STARTUP_PROJECT_PATH}} --no-build --configuration ${{ steps.comp-mode.outputs.compilationMode }} \
             --output ./nuget/ -p:PackageVersion=${{ steps.bumpVersion.outputs.fullVersion }} --include-symbols --include-source
           dotnet pack ${{env.CACHING_PROJECT_PATH}} --no-build --configuration ${{ steps.comp-mode.outputs.compilationMode }} \
+            --output ./nuget/ -p:PackageVersion=${{ steps.bumpVersion.outputs.fullVersion }} --include-symbols --include-source
+          dotnet pack ${{env.EMAIL_PROJECT_PATH}} --no-build --configuration ${{ steps.comp-mode.outputs.compilationMode }} \
             --output ./nuget/ -p:PackageVersion=${{ steps.bumpVersion.outputs.fullVersion }} --include-symbols --include-source
 
       - name: Publish

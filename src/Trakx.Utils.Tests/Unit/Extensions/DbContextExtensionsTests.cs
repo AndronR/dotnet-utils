@@ -2,8 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
 using Trakx.Utils.Extensions;
 using Xunit;
 

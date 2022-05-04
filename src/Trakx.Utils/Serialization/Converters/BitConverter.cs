@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Trakx.Utils.Serialization.Converters;
+﻿namespace Trakx.Utils.Serialization.Converters;
 
 public static class BitConverter
 {

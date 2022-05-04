@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Trakx.Utils.Testing.Attributes;
+﻿using Trakx.Utils.Testing.Attributes;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 

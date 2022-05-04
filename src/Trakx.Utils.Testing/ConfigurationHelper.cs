@@ -1,5 +1,4 @@
-﻿using System.IO;
-using DotNetEnv;
+﻿using DotNetEnv;
 using Microsoft.Extensions.Configuration;
 using Trakx.Utils.Extensions;
 using Trakx.Utils.Startup;

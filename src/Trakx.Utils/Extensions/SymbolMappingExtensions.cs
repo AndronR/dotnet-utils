@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Trakx.Utils.Extensions;
+﻿namespace Trakx.Utils.Extensions;
 
 public static class SymbolMappingExtensions
 {

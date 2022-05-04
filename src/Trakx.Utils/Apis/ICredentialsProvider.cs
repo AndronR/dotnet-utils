@@ -1,7 +1,4 @@
-﻿using System.Net.Http;
-using System.Threading.Tasks;
-
-namespace Trakx.Utils.Apis;
+﻿namespace Trakx.Utils.Apis;
 
 public interface ICredentialsProvider
 {
