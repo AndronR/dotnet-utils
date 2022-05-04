@@ -25,10 +25,10 @@ public class AddAwsSystemsManagerConfigurationTests
     }
 
     const string AspNetCoreEnvironmentVariable = "ASPNETCORE_ENVIRONMENT";
-    const string Environment = "ci-cd";
+    const string Environment = "CiCd";
 
-    [Fact(Skip = "look at https://github.com/aws-actions/configure-aws-credentials/issues/271 and try to fix the permissions of the ci-cd-service-user")]
-    //[Fact]
+    //[Fact(Skip = "look at https://github.com/aws-actions/configure-aws-credentials/issues/271 and try to fix the permissions of the ci-cd-service-user")]
+    [Fact]
     public void AddAwsSystemsManagerConfiguration_should_use_path_from_namespace()
     {
         var envVarSetup = $"{AspNetCoreEnvironmentVariable}={Environment}";
