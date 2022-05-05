@@ -2,9 +2,10 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
     </PropertyGroup>
+
+    <Import Project="../Common.Projects.props" />
+    <Import Project="../Packable.Projects.props" />
 
     <ItemGroup>
       <PackageReference Include="SendGrid" Version="9.27.0" />
