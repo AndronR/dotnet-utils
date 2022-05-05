@@ -6,7 +6,7 @@ using SendGrid.Helpers.Mail;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Trakx.Utils.Emails.Tests;
+namespace Trakx.Utils.Emails.Tests.Unit;
 
 public class SendGridEmailSenderTests
 {
